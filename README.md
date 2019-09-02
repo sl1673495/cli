@@ -1,4 +1,8 @@
 ```
+// 安装eslint
+npm i eslint
+npx eslint --init 初始化
+
 // 切换淘宝源
 nrm use taobao
 

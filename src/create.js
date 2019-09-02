@@ -93,21 +93,24 @@ module.exports = async (projectName) => {
     await ncp(resultDirectory, path.resolve(projectName));
     chalkSuccess(`创建项目成功 请执行\n cd ${projectName}`);
   } else {
-    // 1) 用户填写信息
     await new Promise((resolve, reject) => {
+      // metalsmith 只要是模板编译 都需要
       MetalSmith(__dirname) // 如果你传入路径 默认会遍历当前路径下的src文件夹
         .source(resultDirectory)
       // 拷贝到用户指定的目录下
         .destination(path.resolve(projectName))
         .use(async (files, metal, done) => {
           const asks = require(path.join(resultDirectory, 'ask.js'));
+          // 1) 用户填写信息
           const userSelected = await Inquirer.prompt(asks);
           const meta = metal.metadata();
+          // 填写的信息拷贝到meta里去
           Object.assign(meta, userSelected);
           delete files['ask.js'];
           done();
         })
         .use((files, metal, done) => {
+          // 2) 利用填写的信息渲染模板
           const metaData = metal.metadata();
           Reflect.ownKeys(files).forEach(async (fileName) => {
             // 处理 带<%的文件
@@ -121,7 +124,6 @@ module.exports = async (projectName) => {
               }
             }
           });
-          console.log('metal: ', metal.metadata());
           done();
         })
         .build((err) => {
@@ -134,8 +136,5 @@ module.exports = async (projectName) => {
           }
         });
     });
-
-    // 2) 利用填写的信息渲染模板
-    // metalsmith 只要是模板编译 都需要
   }
 };
